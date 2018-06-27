@@ -1,4 +1,4 @@
-defmodule Actux do
+defmodule ActuxBackend do
   @moduledoc """
     This module contains the GenEvent that you can use to transmit logs or
     analytics for your Elixir applications to actus.
@@ -16,8 +16,6 @@ defmodule Actux do
           table: "myTable"
 
     The configuration defaults to:
-
-        config :logger, :actux,
           actus_host: "https://actus-bleeping.vidangel.com",
           namespace: "event",
           level: :info,
@@ -25,6 +23,7 @@ defmodule Actux do
           timeout: 5000,
           table: :application.get_application
   """
+  @behaviour :gen_event
 
   import Logger.Formatter, only: [format_date: 1, format_time: 1]
 
@@ -40,17 +39,13 @@ defmodule Actux do
     {:ok, :ok, setup(name, opts)}
   end
 
-  @doc false
-  def handle_event({_level, gl, _event}, config) when node(gl) != node() do
-    {:ok, config}
-  end
-
-  @doc false
+  def handle_event(:flush, state), do: {:ok, state}
+  def handle_event({_level, gl, _event}, state) when node(gl) != node(), do: {:ok, state}
   def handle_event({level, _gl, {Logger, msg, timestamp, metadata}}, config) do
-    if meet_level?(level, config.level) do
-      log_event(level, msg, timestamp, metadata, config)
+    case meet_level?(level, config.level) do
+      true -> log_event(level, msg, timestamp, metadata, config)
+      false -> {:ok, config}
     end
-    {:ok, config}
   end
 
   defp meet_level?(_lvl, nil), do: true
@@ -63,14 +58,14 @@ defmodule Actux do
   end
 
   def format_event(level, msg, timestamp, metadata) do
+    excluded_keys = [:pid, :module, :function, :file, :line]
     %{
       level: level,
       time: event_time(timestamp),
       msg: (msg |> IO.iodata_to_binary)
     }
-    |> Map.merge(Enum.into(metadata, %{}))
+    |> Map.merge(Map.drop(Enum.into(metadata, %{}), excluded_keys))
     |> Poison.encode!
-    |> Kernel.<>("\n")
   end
 
   defp event_time({date, time}) do
@@ -81,12 +76,8 @@ defmodule Actux do
   defp log_event(level, msg, timestamp, metadata, config) do
     output = format_event(level, msg, timestamp, metadata)
     headers = [{"Content-type", "application/json"}]
-    case HTTPoison.post(config.url, output, headers, timeout: config.timeout) do
-      {:ok, %HTTPoison.Response{status_code: status}} ->
-        {:ok, status}
-      {:error, %HTTPoison.Error{reason: reason}} ->
-        {:error, reason}
-    end
+    IO.puts inspect(config.url)
+    HTTPoison.post!(config.url, output, headers, timeout: config.timeout)
   end
 
   defp setup(name, opts) do
@@ -94,14 +85,18 @@ defmodule Actux do
     opts = Keyword.merge(environment, opts)
     Application.put_env(:logger, name, opts)
 
+    format = Keyword.get(opts, :format) |> Logger.Formatter.compile
+    formatter = get_config(opts, :formatter, Logger.Formatter)
     level = get_config(opts, :level, :info)
-    table = get_config(opts, :table, :application.get_application)
+    table = get_config(opts, :table, "mytable")
     timeout = get_config(opts, :timeout, 5000)
     namespace = get_config(opts, :namespace, "event")
     host = get_config(opts, :actus_host, @default_actus_host)
     metadata = get_config(opts, :metadata, [])
 
     %{name: name,
+      format: format,
+      formatter: formatter,
       url: "#{host}/#{namespace}/#{table}",
       level: level,
       metadata: metadata,
