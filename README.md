@@ -53,6 +53,8 @@ config :logger,
 
 config :logger, :actux,
   level: :info,
+  host: System.get_env("ACTUS_HOST"),
+  namespace: "myNamespace",
   table: "myTable"
 ```
 
