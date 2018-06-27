@@ -90,7 +90,7 @@ defmodule ActuxBackend do
     level = get_config(opts, :level, :info)
     table = get_config(opts, :table, "mytable")
     timeout = get_config(opts, :timeout, 5000)
-    namespace = get_config(opts, :namespace, "event")
+    namespace = get_config(opts, :actus_namespace, "event")
     host = get_config(opts, :actus_host, @default_actus_host)
     metadata = get_config(opts, :metadata, [])
 
