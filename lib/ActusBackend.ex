@@ -65,7 +65,7 @@ defmodule ActuxBackend do
       msg: (msg |> IO.iodata_to_binary)
     }
     |> Map.merge(Map.drop(Enum.into(metadata, %{}), excluded_keys))
-    |> Poison.encode!
+    |> Jason.encode!
   end
 
   defp event_time({date, time}) do
@@ -77,7 +77,7 @@ defmodule ActuxBackend do
     output = format_event(level, msg, timestamp, metadata)
     headers = [{"Content-type", "application/json"}]
     IO.puts inspect(config.url)
-    HTTPoison.post!(config.url, output, headers, timeout: config.timeout)
+    Tesla.post!(config.url, output, headers)
   end
 
   defp setup(name, opts) do

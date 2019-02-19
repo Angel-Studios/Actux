@@ -4,7 +4,7 @@ defmodule Actux.MixProject do
   def project do
     [
       app: :actux,
-      version: "0.1.0",
+      version: "0.2.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       deps: deps()
@@ -13,14 +13,14 @@ defmodule Actux.MixProject do
 
   def application do
     [
-      extra_applications: [:httpoison, :poison]
+      extra_applications: [:tesla, :jason]
     ]
   end
 
   defp deps do
     [
-      {:httpoison, "~> 1.0"},
-      {:poison, "~> 3.1"}
+      {:tesla, "~> 1.2.1"},
+      {:jason, "~> 1.1"}
     ]
   end
 end

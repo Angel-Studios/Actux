@@ -19,14 +19,12 @@ defmodule ActusLogger do
   def push(table, data) do
     host = Application.get_env(:actux, :actus_host, "https://actus-bleeping.vidangel.com")
     namespace = Application.get_env(:actux, :actus_namespace, "event")
-    body = Poison.encode!(data)
+    body = Jason.encode!(data)
     headers = [{"Content-type", "application/json"}]
     url = "#{host}/#{namespace}/#{table}"
-    case HTTPoison.post(url, body, headers) do
-      {:ok, %HTTPoison.Response{status_code: status}} ->
-        {:ok, status}
-      {:error, %HTTPoison.Error{reason: reason}} ->
-        {:error, reason}
+    case Tesla.post(url, body, headers) do
+      {:ok, response} -> {:ok, response.status}
+      {:error, reason} -> {:error, reason}
     end
   end
 end
