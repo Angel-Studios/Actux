@@ -76,8 +76,8 @@ defmodule ActuxBackend do
   defp log_event(level, msg, timestamp, metadata, config) do
     output = format_event(level, msg, timestamp, metadata)
     headers = [{"Content-type", "application/json"}]
-    IO.puts inspect(config.url)
     Tesla.post!(config.url, output, headers)
+    {:ok, config}
   end
 
   defp setup(name, opts) do
