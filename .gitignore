@@ -24,3 +24,12 @@ actux-*.tar
 
 mix.lock
 .elixir_ls/
+
+# Ignore IDE files
+.idea/
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw*
