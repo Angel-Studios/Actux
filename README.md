@@ -3,10 +3,11 @@
 Actux is a collection of logging modules to push data to Actus from your elixir
 app. It currently includes two modules:
 
-  * ActusLogger -- a simple, standalone logger to push arbitrary data packets
-  to a table and namespace of your choosing.
-  * ActusBackend -- an integrated backend for elixir's built-in `:logger` module.
-  * Actux.Plug -- A plug that normalizes and reports request data.
+  * `Actux` -- access to the simple, standalone functions to push arbitrary data
+    packets to a table and namespace of your choosing.
+  * `Actux.Backend` -- an integrated backend for elixir's built-in `:logger` module.
+  * `Actux.Plug` -- A plug that normalizes and reports request data through the
+    `Actux.Backend`.
 
 Other modules will be added soon, including `Plug`s for Ecto.
 
@@ -22,34 +23,35 @@ def deps do
 end
 ```
 
-You can also reference Actux as a git dependency (see [https://hexdocs.pm/mix/Mix.Tasks.Deps.html] for more details)
+You can also reference `Actux` as a git dependency (see [https://hexdocs.pm/mix/Mix.Tasks.Deps.html] for more details)
 
-Actux must be loaded in `mix.exs` before your app, like this:
+`Actux` must be loaded in `mix.exs` before your app, like this:
 
 ```elixir
 def application do
   [
     applications: [:actux, :httpoison, :poison]
   ]
+end
 ```
 
 # Configuration
 
-## Simple Logger
-To configure actux, you can set the `actus_host` and
-`actus_namespace` variables as part of your app's configuration file (under the
+## Simple Logging
+To configure `Actux`, you can set the `:actus_host` and
+`:actus_namespace` variables as part of your app's configuration file (under the
   `:actux` atom):
 
 ```elixir
 config :actux,
   actus_host: System.get_env("ACTUS_HOST"),
-  actus_namespace: "my_namespace"
+  actus_namespace: :my_namespace
 ```
 
 ## Logger Backend | Plug
 ### Basic Configuration
-To configure the `:logger` backend instead, set ActusBackend to be the backend
-for `:logger` and then add the Actux specific parameters:
+To configure the `:logger` backend instead, set `Actux.Backend` to be a backend
+for `:logger` and then add the `Actux` specific parameters:
 
 ```elixir
 config :actux,
@@ -57,7 +59,7 @@ config :actux,
   actus_namespace: :default_namespace
   
 config :logger,
-  backends: [{ActuxBackend, :actux}]
+  backends: [{Actux.Backend, :actux}]
 
 config :logger, :actux,
   level: :info,
@@ -67,12 +69,12 @@ config :logger, :actux,
 ```
 
 ### Multiple Backends
-You can log to multiple backends (e.g., Actus and the console) by
+You can log to multiple backends (e.g., Actux and the console) by
 configuring all backends in the `config.exs` file. For example:
 
 ```elixir
 config :logger,
-  backends: [{ActuxBackend, :actux}, :console]
+  backends: [{Actux.Backend, :actux}, :console]
 ```
 
 This can be especially useful if you want to incorporate debug logging that is
@@ -81,7 +83,7 @@ the console logger to be at a higher level:
 
 ```elixir
 config :logger,
-  backends: [{ActuxBackend, :actux}]
+  backends: [{Actux.Backend, :actux}]
 
 config :logger, :actux,
   level: :info
@@ -112,16 +114,16 @@ config :logger, :actux,
 
 # Use
 
-## Simple Logger
-Require `ActusLogger` in the module where you'll be using it and,
+## Simple Logging
+Require `Actux` in the module where you'll be using it and,
 whenever you need to send something to Actus, invoke the logger as its own
 function call, passing it a table name and a map of the fields and values you
 want to push:
 
 ```elixir
-require ActusLogger
+require Actux
 
-ActusLogger.push("myTable", %{"foo" => "bar"})
+Actux.push("myTable", %{"foo" => "bar"})
 ```
 
 > Note:
@@ -166,7 +168,7 @@ before any other plugs (where the default `Plug.Logger` would be):
 Namespace and table options here override both the `:actux` and the
 `:logger, :actux` configurations.
 
-The Actux Plug does use the Actux Backend in order to take advantage of the
+The `Actux.Plug` does use the `Actux.Backend` in order to take advantage of the
 asynchronous offloading.  Most of the plug's functionality is currently just
 pulling data off of the `Plug.Conn` structure, parsing, and  formatting it to
 match the other telemetry tables currently set up in Actus.
