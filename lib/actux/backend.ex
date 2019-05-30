@@ -1,12 +1,12 @@
-defmodule ActuxBackend do
+defmodule Actux.Backend do
   @moduledoc """
     This module contains the GenEvent that you can use to transmit logs or
     analytics for your Elixir applications to actus.
 
     ## Configuring
 
-    By default the ACTUS_HOST environment variable is used to set the location
-    of the timescaledb. You can manually set backend specific defaults, by
+    The location of the timescaledb is configured in the application's `Actux`
+    configuration. All other defaults for the backend can be specified by
     configuring the :logger :actux backend.
 
     ```elixir
@@ -17,7 +17,7 @@ defmodule ActuxBackend do
     ```
 
     The configuration defaults to:
-    - namespace: `nil` (fallback to global actux configuration)
+    - namespace: `nil` (fallback to application actux configuration)
     - level: `:info`
     - metadata: `[]`
     - table: `:info`
@@ -77,7 +77,7 @@ defmodule ActuxBackend do
       nil -> format_event(level, msg, timestamp, metadata)
       request -> Actux.Request.from_conn(request.conn, request.response_time)
     end
-    ActusLogger.push(namespace(metadata, config), table(metadata, config), output)
+    Actux.push(namespace(metadata, config), table(metadata, config), output)
     {:ok, config}
   end
 

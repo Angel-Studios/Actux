@@ -1,6 +1,6 @@
-defmodule ActusLogger do
+defmodule Actux do
   @moduledoc """
-    This module contains a simple logger that you can use to transmit logs or
+    This module contains a simple function that you can use to transmit logs or
     analytics for your Elixir applications to actus.
 
     ### Configuring
