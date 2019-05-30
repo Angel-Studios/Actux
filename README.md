@@ -146,6 +146,14 @@ keyword list):
 Logger.info "log message", [foo: "bar", bat: "baz"]
 ```
 
+Namespaces and tables can be defined at this level by using the same `metadata`
+structure:
+```elixir
+Logger.info "log message",
+            namespace: :strangely_specific_namespace,
+            table: :strangely_specific_table
+```
+
 ## Plug
 Add the `Actux.Plug` to your phoenix endpoint after static asset serving, but
 before any other plugs (where the default `Plug.Logger` would be):
