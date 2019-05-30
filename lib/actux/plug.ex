@@ -51,5 +51,9 @@ defmodule Actux.Plug do
 
   defp end_user(%Conn{assigns: %{user: %{email: email}}}), do: email
   defp end_user(%Conn{remote_ip: {b1, b2, b3, b4}}),       do: Enum.join([b1, b2, b3, b4], ".")
+  defp end_user(other) do
+    IO.inspect(other, label: :no_end_user)
+    nil
+  end
 
 end
