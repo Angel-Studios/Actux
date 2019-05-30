@@ -22,7 +22,7 @@ defmodule Actux.Request do
     {:source, :server},
     :status_code,
     :url,
-    :user,
+    :end_user,
   ]
 
   def from_conn(conn, response_time) do
@@ -37,7 +37,7 @@ defmodule Actux.Request do
       url: Conn.request_url(conn),
       device: to_string(ua.device),
       device_family: to_string(ua.device.brand),
-      user: user(conn),
+      end_user: end_user(conn),
       status_code: conn.status,
       response_time: response_time,
     }
@@ -50,7 +50,7 @@ defmodule Actux.Request do
     |> UAParser.parse()
   end
 
-  defp user(%Conn{assigns: %{user: %{email: email}}}), do: email
-  defp user(%Conn{remote_ip: address}),                do: address
+  defp end_user(%Conn{assigns: %{user: %{email: email}}}), do: email
+  defp end_user(%Conn{remote_ip: address}),                do: address
 
 end
