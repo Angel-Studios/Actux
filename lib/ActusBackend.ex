@@ -27,8 +27,6 @@ defmodule ActuxBackend do
 
   import Logger.Formatter, only: [format_date: 1, format_time: 1]
 
-  @default_actus_host "https://actus-bleeping.vidangel.com"
-
   @doc false
   def init({__MODULE__, name}) do
     {:ok, setup(name, [])}
@@ -42,11 +40,14 @@ defmodule ActuxBackend do
   def handle_event(:flush, state), do: {:ok, state}
   def handle_event({_level, gl, _event}, state) when node(gl) != node(), do: {:ok, state}
   def handle_event({level, _gl, {Logger, msg, timestamp, metadata}}, config) do
-    case meet_level?(level, config.level) do
+    case meet_level?(level, config.level) && allow_module?(metadata, config.allowed_modules) do
       true -> log_event(level, msg, timestamp, metadata, config)
       false -> {:ok, config}
     end
   end
+
+  defp allow_module?(_metadata, []), do: true
+  defp allow_module?(metadata, allowed_modules), do: Keyword.get(metadata, :module) in allowed_modules
 
   defp meet_level?(_lvl, nil), do: true
   defp meet_level?(lvl, min) do
@@ -65,7 +66,6 @@ defmodule ActuxBackend do
       msg: (msg |> IO.iodata_to_binary)
     }
     |> Map.merge(Map.drop(Enum.into(metadata, %{}), excluded_keys))
-    |> Jason.encode!
   end
 
   defp event_time({date, time}) do
@@ -74,10 +74,20 @@ defmodule ActuxBackend do
   end
 
   defp log_event(level, msg, timestamp, metadata, config) do
-    output = format_event(level, msg, timestamp, metadata)
-    headers = [{"Content-type", "application/json"}]
-    Tesla.post!(config.url, output, headers)
+    output = case Keyword.get(metadata, :request) do
+      nil -> format_event(level, msg, timestamp, metadata)
+      request -> Actux.Request.from_conn(request.conn, request.response_time)
+    end
+    ActusLogger.push(namespace(metadata, config), table(metadata, config), output)
     {:ok, config}
+  end
+
+  defp table(metadata, config) do
+    Keyword.get(metadata, :table, config.table)
+  end
+
+  defp namespace(metadata, config) do
+    Keyword.get(metadata, :namespace, config.namespace)
   end
 
   defp setup(name, opts) do
@@ -91,15 +101,18 @@ defmodule ActuxBackend do
     table = get_config(opts, :table, "mytable")
     timeout = get_config(opts, :timeout, 5000)
     namespace = get_config(opts, :actus_namespace, "event")
-    host = get_config(opts, :actus_host, @default_actus_host)
     metadata = get_config(opts, :metadata, [])
 
-    %{name: name,
+    %{
       format: format,
       formatter: formatter,
-      url: "#{host}/#{namespace}/#{table}",
       level: level,
       metadata: metadata,
-      timeout: timeout}
+      name: name,
+      namespace: namespace,
+      allowed_modules: get_config(opts, :allowed_modules, []),
+      table: table,
+      timeout: timeout,
+    }
   end
 end

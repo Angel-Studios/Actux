@@ -16,15 +16,23 @@ defmodule ActusLogger do
       actus_host: "https://actus-bleeping.vidangel.com",
       actus_namespace: "event"
   """
-  def push(table, data) do
-    host = Application.get_env(:actux, :actus_host, "https://actus-bleeping.vidangel.com")
-    namespace = Application.get_env(:actux, :actus_namespace, "event")
-    body = Jason.encode!(data)
-    headers = [{"Content-type", "application/json"}]
-    url = "#{host}/#{namespace}/#{table}"
-    case Tesla.post(url, body, headers) do
+  @default_host "https://actus-bleeping.vidangel.com"
+  @default_namespace :event
+
+  def url(nil, table), do: url(Application.get_env(:actux, :actus_namespace, @default_namespace), table)
+  def url(namespace, table) do
+    Application.get_env(:actux, :actus_host, @default_host) <> "/#{namespace}/#{table}"
+  end
+
+  def push(namespace \\ nil, table, data) do
+    case Tesla.post(
+           url(namespace, table),
+           Jason.encode!(data),
+           [{"Content-type", "application/json"}]
+         ) do
       {:ok, response} -> {:ok, response.status}
       {:error, reason} -> {:error, reason}
     end
   end
+
 end

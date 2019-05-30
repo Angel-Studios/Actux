@@ -19,8 +19,10 @@ defmodule Actux.MixProject do
 
   defp deps do
     [
+      {:jason, "~> 1.1"},
+      {:plug, "~> 1.7"},
       {:tesla, "~> 1.2.1"},
-      {:jason, "~> 1.1"}
+      {:ua_parser, "~> 1.7"},
     ]
   end
 end
