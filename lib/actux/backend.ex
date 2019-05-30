@@ -73,9 +73,9 @@ defmodule Actux.Backend do
   end
 
   defp log_event(level, msg, timestamp, metadata, config) do
-    output = case Keyword.get(metadata, :request) do
+    output = case Keyword.get(metadata, :request_attrs) do
       nil -> format_event(level, msg, timestamp, metadata)
-      request -> Actux.Request.from_conn(request.conn, request.response_time)
+      attrs -> Actux.Request.from_attrs(attrs)
     end
     Actux.push(namespace(metadata, config), table(metadata, config), output)
     {:ok, config}

@@ -7,7 +7,6 @@ defmodule Actux.Request do
   """
 
   alias __MODULE__
-  alias Plug.Conn
   @derive Jason.Encoder
 
   defstruct [
@@ -25,8 +24,8 @@ defmodule Actux.Request do
     :end_user,
   ]
 
-  def from_conn(conn, response_time) do
-    ua = user_agent(conn)
+  def from_attrs(attrs) do
+    ua = UAParser.parse(attrs.user_agent)
     %Request{
       source: :server,
       os_name: to_string(ua.os.family),
@@ -34,23 +33,13 @@ defmodule Actux.Request do
       browser: to_string(ua),
       browser_name: to_string(ua.family),
       browser_version: to_string(ua.version),
-      url: Conn.request_url(conn),
+      url: attrs.url,
       device: to_string(ua.device),
       device_family: to_string(ua.device.brand),
-      end_user: end_user(conn),
-      status_code: conn.status,
-      response_time: response_time,
+      end_user: attrs.end_user,
+      status_code: attrs.status_code,
+      response_time: attrs.response_time,
     }
   end
-
-  defp user_agent(conn) do
-    conn
-    |> Conn.get_req_header("user-agent")
-    |> List.first()
-    |> UAParser.parse()
-  end
-
-  defp end_user(%Conn{assigns: %{user: %{email: email}}}), do: email
-  defp end_user(%Conn{remote_ip: address}),                do: address
 
 end

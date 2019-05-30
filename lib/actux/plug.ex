@@ -25,8 +25,11 @@ defmodule Actux.Plug do
         Logger.info "Sending Request data to Actus",
                     namespace: Keyword.get(opts, :namespace),
                     table: Keyword.get(opts, :table),
-                    request: %{
-                      conn: conn,
+                    request_attrs: %{
+                      url: Conn.request_url(conn),
+                      user_agent: user_agent_string(conn),
+                      end_user: end_user(conn),
+                      status_code: conn.status,
                       response_time: response_time
                     }
         conn
@@ -39,5 +42,14 @@ defmodule Actux.Plug do
     |> Kernel.-(start_time)
     |> System.convert_time_unit(:native, :microsecond)
   end
+
+  defp user_agent_string(conn) do
+    conn
+    |> Conn.get_req_header("user-agent")
+    |> List.first()
+  end
+
+  defp end_user(%Conn{assigns: %{user: %{email: email}}}), do: email
+  defp end_user(%Conn{remote_ip: {b1, b2, b3, b4}}),       do: Enum.join([b1, b2, b3, b4], ".")
 
 end
