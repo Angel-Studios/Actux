@@ -7,16 +7,17 @@ defmodule ActusLogger do
 
     You can set your host and namespace by configuring the :actux application.
 
+    ```elixir
     config :actux,
       actus_host: System.get_env("ACTUS_HOST"),
-      actus_namespace: "myNamespace"
+      actus_namespace: :my_namespace
+    ```
 
     If you do not configure the application, then the defaults will be:
-
-      actus_host: "https://actus-bleeping.vidangel.com",
-      actus_namespace: "event"
+    - actus_host: `"0.0.0.0"`
+    - actus_namespace: `:event`
   """
-  @default_host "https://actus-bleeping.vidangel.com"
+  @default_host "0.0.0.0"
   @default_namespace :event
 
   def url(nil, table), do: url(Application.get_env(:actux, :actus_namespace, @default_namespace), table)

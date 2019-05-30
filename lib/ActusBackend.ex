@@ -3,25 +3,24 @@ defmodule ActuxBackend do
     This module contains the GenEvent that you can use to transmit logs or
     analytics for your Elixir applications to actus.
 
-    ### Configuring
+    ## Configuring
 
     By default the ACTUS_HOST environment variable is used to set the location
-    of the timescaledb. You can manually set your host, and other defaults, by
-    configuring the :actux application.
+    of the timescaledb. You can manually set backend specific defaults, by
+    configuring the :logger :actux backend.
 
-        config :logger, :actux,
-          actus_host: System.get_env("ACTUS_HOST"),
-          namespace: "myNamespace",
-          level: :info,
-          table: "myTable"
+    ```elixir
+      config :logger, :actux,
+        namespace: :my_namespace,
+        level: :info,
+        table: :my_table
+    ```
 
     The configuration defaults to:
-          actus_host: "https://actus-bleeping.vidangel.com",
-          namespace: "event",
-          level: :info,
-          metadata: [],
-          timeout: 5000,
-          table: :application.get_application
+    - namespace: `nil` (fallback to global actux configuration)
+    - level: `:info`
+    - metadata: `[]`
+    - table: `:info`
   """
   @behaviour :gen_event
 
@@ -98,9 +97,8 @@ defmodule ActuxBackend do
     format = Keyword.get(opts, :format) |> Logger.Formatter.compile
     formatter = get_config(opts, :formatter, Logger.Formatter)
     level = get_config(opts, :level, :info)
-    table = get_config(opts, :table, "mytable")
-    timeout = get_config(opts, :timeout, 5000)
-    namespace = get_config(opts, :actus_namespace, "event")
+    table = get_config(opts, :table, :info)
+    namespace = get_config(opts, :actus_namespace, :event)
     metadata = get_config(opts, :metadata, [])
 
     %{
@@ -112,7 +110,6 @@ defmodule ActuxBackend do
       namespace: namespace,
       allowed_modules: get_config(opts, :allowed_modules, []),
       table: table,
-      timeout: timeout,
     }
   end
 end
