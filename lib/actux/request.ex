@@ -36,10 +36,22 @@ defmodule Actux.Request do
       url: attrs.url,
       device: to_string(ua.device),
       device_family: to_string(ua.device.brand),
-      end_user: attrs.end_user,
+      end_user: end_user(attrs),
       status_code: attrs.status_code,
       response_time: attrs.response_time,
     }
   end
+
+  defp end_user(%{user: %{email: email}}), do: email
+  defp end_user(%{remote_ip: value}), do: ip_to_string(value)
+  defp end_user(_), do: nil
+
+
+  defp ip_to_string(ip) when is_tuple(ip) do
+    ip
+    |> :inet.ntoa()
+    |> to_string()
+  end
+  defp ip_to_string(_), do: nil
 
 end

@@ -28,9 +28,10 @@ defmodule Actux.Plug do
                     request_attrs: %{
                       url: Conn.request_url(conn),
                       user_agent: user_agent_string(conn),
-                      end_user: end_user(conn),
                       status_code: conn.status,
-                      response_time: response_time
+                      response_time: response_time,
+                      user: conn.assigns[:user],
+                      remote_ip: conn.remote_ip
                     }
         conn
       end
@@ -47,13 +48,6 @@ defmodule Actux.Plug do
     conn
     |> Conn.get_req_header("user-agent")
     |> List.first()
-  end
-
-  defp end_user(%Conn{assigns: %{user: %{email: email}}}), do: email
-  defp end_user(%Conn{remote_ip: {b1, b2, b3, b4}}),       do: Enum.join([b1, b2, b3, b4], ".")
-  defp end_user(other) do
-    IO.inspect(other, label: :no_end_user)
-    nil
   end
 
 end
