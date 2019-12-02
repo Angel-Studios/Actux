@@ -24,8 +24,12 @@ defmodule Actux.Request do
     :end_user,
   ]
 
+  def parse_ua(nil), do: UAParser.parse("")
+  defdelegate parse_ua(ua), to: UAParser, as: :parse
+  defdelegate parse_ua(ua, pattern), to: UAParser, as: :parse
+
   def from_attrs(attrs) do
-    ua = UAParser.parse(attrs.user_agent)
+    ua = parse_ua(attrs.user_agent)
     %Request{
       source: :server,
       os_name: to_string(ua.os.family),
