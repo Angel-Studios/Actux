@@ -58,7 +58,7 @@ defmodule Actux.Backend do
   end
 
   def format_event(level, msg, timestamp, metadata) do
-    excluded_keys = [:pid, :module, :function, :file, :line, :crash_reason]
+    excluded_keys = [:mfa, :pid, :module, :function, :file, :line, :crash_reason]
     %{
       level: level,
       time: event_time(timestamp),
