@@ -50,21 +50,36 @@ defmodule Actux.Backend do
 
   defp meet_level?(_lvl, nil), do: true
   defp meet_level?(lvl, min) do
-   Logger.compare_levels(lvl, min) != :lt
+    Logger.compare_levels(lvl, min) != :lt
   end
 
   defp get_config(environment, key, default) do
     Keyword.get(environment, key, default)
   end
 
+  # I believe these keys were excluded because they couldn't be encoded well, but I
+  # updated this to exclude anything that isn't encodable, so that it shouldn't ever
+  # fail.
+  # We should replace this list of excluded keys with a list of included metdata
+  # keys though...
+  @excluded_keys [:mfa, :pid, :module, :function, :file, :line, :crash_reason]
+  defp filter_encodable({key, _value}) when key in @excluded_keys, do: false
+  defp filter_encodable({_key, value}) do
+    case Jason.encode(value) do
+      {:ok, _} -> true
+      _ -> false
+    end
+  end
+
   def format_event(level, msg, timestamp, metadata) do
-    excluded_keys = [:mfa, :pid, :module, :function, :file, :line, :crash_reason]
-    %{
+    metadata
+    |> Enum.filter(&filter_encodable/1)
+    |> Map.new()
+    |> Map.merge(%{
       level: level,
       time: event_time(timestamp),
-      msg: (msg |> IO.iodata_to_binary)
-    }
-    |> Map.merge(Map.drop(Enum.into(metadata, %{}), excluded_keys))
+      msg: IO.iodata_to_binary(msg),
+    })
   end
 
   defp event_time({date, time}) do
