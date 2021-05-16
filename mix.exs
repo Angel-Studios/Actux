@@ -4,8 +4,8 @@ defmodule Actux.MixProject do
   def project do
     [
       app: :actux,
-      version: "0.2.2",
-      elixir: "~> 1.6",
+      version: "0.3.0",
+      elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
@@ -19,9 +19,9 @@ defmodule Actux.MixProject do
 
   defp deps do
     [
-      {:jason, "~> 1.1"},
-      {:plug, "~> 1.7"},
-      {:tesla, "~> 1.3.3"},
+      {:jason, "~> 1.2"},
+      {:plug, "~> 1.11"},
+      {:tesla, "~> 1.4."},
       {:ua_parser, "~> 1.7"},
     ]
   end
