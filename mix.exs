@@ -21,7 +21,7 @@ defmodule Actux.MixProject do
     [
       {:jason, "~> 1.2"},
       {:plug, "~> 1.11"},
-      {:tesla, "~> 1.4."},
+      {:tesla, "~> 1.4"},
       {:ua_parser, "~> 1.7"},
     ]
   end
